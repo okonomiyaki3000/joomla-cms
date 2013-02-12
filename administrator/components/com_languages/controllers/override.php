@@ -128,11 +128,56 @@ class LanguagesControllerOverride extends JControllerForm
 			return;
 		}
 
+		JPluginHelper::importPlugin('content');
+		$dispatcher	= JDispatcher::getInstance();
+
+		// Find out if it's a new item and whether or not we need to delete an item
+		$deleteObject = new JObject(array('keys' => array()));
+		if ($validData['id'] == $validData['key'])
+		{
+			$isNew = false;
+		}
+		else
+		{
+			$isNew = !$model->getItem($validData['key']);
+
+			if ($model->getItem($validData['id']))
+			{
+				$deleteObject->keys[] = $validData['id'];
+			}
+		}
+
+		// Trigger the onContentBeforeDelete event if we will need to delete an override
+		if (!empty($deleteObject->keys))
+		{
+			$result = $dispatcher->trigger('onContentBeforeDelete', array('com_languages.override', &$deleteObject));
+			if (in_array(false, $result, true))
+			{
+				// There are some errors in the plugins
+				$errors = $deleteObject->getErrors();
+				$this->setMessage(JText::plural('COM_LANGUAGES_ERROR_BEFORE_DELETE', count($errors), implode('<br />', $errors)), 'error');
+				return;
+			}
+		}
+
+		// Trigger the onContentBeforeSave event
+		$saveObject = new JObject($validData);
+		$result = $dispatcher->trigger('onContentBeforeSave', array('com_languages.override', &$saveObject, $isNew));
+		if (in_array(false, $result, true))
+		{
+			// There are some errors in the plugins
+			$errors = $saveObject->getErrors();
+			$this->setMessage(JText::plural('COM_LANGUAGES_ERROR_BEFORE_SAVE', count($errors), implode('<br />', $errors)), 'error');
+			$this->setRedirect(JRoute::_('index.php?option='.$this->option.'&view='.$this->view_item.$this->getRedirectToItemAppend($recordId, 'id'), false));
+			return;
+		}
+
 		// Attempt to save the data
-		if (!$model->save($validData))
+		$saveData = get_object_vars($saveObject);
+		if (!$model->save($saveData))
 		{
 			// Save the data in the session
-			$app->setUserState($context.'.data', $validData);
+			$app->setUserState($context . '.data', $saveData);
 
 			// Redirect back to the edit screen
 			$this->setError(JText::sprintf('JLIB_APPLICATION_ERROR_SAVE_FAILED', $model->getError()));
@@ -142,6 +187,13 @@ class LanguagesControllerOverride extends JControllerForm
 			return;
 		}
 
+		// Trigger the onContentAfterDelete event if we deleted something.
+		if (!empty($deleteObject->keys))
+		{
+			$dispatcher->trigger('onContentAfterDelete', array('com_languages.override', &$deleteObject));
+		}
+		// Trigger the onContentAfterSave event.
+		$dispatcher->trigger('onContentAfterSave', array('com_languages.override', &$saveObject, $isNew));
 		// Add message of success
 		$this->setMessage(JText::_('COM_LANGUAGES_VIEW_OVERRIDE_SAVE_SUCCESS'));
 

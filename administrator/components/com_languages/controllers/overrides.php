@@ -38,29 +38,45 @@ class LanguagesControllerOverrides extends JControllerAdmin
 		// Check for request forgeries
 		JSession::checkToken() or die(JText::_('JINVALID_TOKEN'));
 
+		// Redirect here regardless of any outcome
+		$this->setRedirect(JRoute::_('index.php?option='.$this->option.'&view='.$this->view_list, false));
+
 		// Get items to dlete from the request
-		$cid = $this->input->get('cid', array(), 'array');
+		$cid	= JRequest::getVar('cid', array(), '', 'array');
 
 		if (!is_array($cid) || count($cid) < 1)
 		{
 			$this->setMessage(JText::_($this->text_prefix.'_NO_ITEM_SELECTED'), 'warning');
+			return;
 		}
-		else
+
+		// Get the model
+		$model = $this->getModel('overrides');
+
+		JPluginHelper::importPlugin('content');
+		$dispatcher	= JDispatcher::getInstance();
+
+		// Trigger the onContentBeforeDelete event.
+		$dataObject = JObject(array('keys' => $cid));
+		$result = $dispatcher->trigger('onContentBeforeDelete', array('com_languages.override', &$dataObject));
+		if (in_array(false, $result, true))
 		{
-			// Get the model
-			$model = $this->getModel('overrides');
-
-			// Remove the items
-			if ($model->delete($cid))
-			{
-				$this->setMessage(JText::plural($this->text_prefix.'_N_ITEMS_DELETED', count($cid)));
-			}
-			else
-			{
-				$this->setMessage($model->getError());
-			}
+			// There are some errors in the plugins
+			$errors = $dataObject->getErrors();
+			$this->setMessage(JText::plural('COM_LANGUAGES_ERROR_BEFORE_DELETE', count($errors), implode('<br />', $errors)), 'error');
+			return;
 		}
 
-		$this->setRedirect(JRoute::_('index.php?option='.$this->option.'&view='.$this->view_list, false));
+		// Remove the items
+		if (!$model->delete($dataObject->keys))
+		{
+			$this->setMessage($model->getError());
+		}
+
+		// Trigger the onContentAfterSave event.
+		$dispatcher->trigger('onContentAfterDelete', array('com_languages.override', &$dataObject));
+
+		$this->setMessage(JText::plural($this->text_prefix.'_N_ITEMS_DELETED', count($cid)));
+
 	}
 }
