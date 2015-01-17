@@ -140,7 +140,11 @@ class PlgSystemDebug extends JPlugin
 
 			// Split into an array at any character other than alphabet, numbers, _, ., or -
 			$categories = array_filter(preg_split('/[^A-Z0-9_\.-]/i', $this->params->get('log_categories', '')));
-			$mode = $this->params->get('log_category_mode', 0);
+			$mode_param = $this->params->get('log_category_mode', 1);
+
+			// We need to translate the value back as 1 and 0 has different meaning in JLog.
+			$mode = $mode_param == 1 ? $mode = 0 : $mode = 1;
+			$mode = $mode_param == 0 ? $mode = 1 : $mode = 0;
 
 			JLog::addLogger(array('logger' => 'callback', 'callback' => array($this, 'logger')), $priority, $categories, $mode);
 		}

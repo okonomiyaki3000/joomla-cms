@@ -98,12 +98,12 @@
 					description="PLG_DEBUG_FIELD_LOG_CATEGORIES_DESC"
 				/>
 
-				<field name="log_category_mode" type="radio" default="0" class="btn-group btn-group-yesno"
+				<field name="log_category_mode" type="radio" default="1" class="btn-group btn-group-yesno"
 					label="PLG_DEBUG_FIELD_LOG_CATEGORY_MODE_LABEL"
 					description="PLG_DEBUG_FIELD_LOG_CATEGORY_MODE_DESC"
 				>
-					<option value="0">PLG_DEBUG_FIELD_LOG_CATEGORY_MODE_INCLUDE</option>
-					<option value="1">PLG_DEBUG_FIELD_LOG_CATEGORY_MODE_EXCLUDE</option>
+					<option value="1">PLG_DEBUG_FIELD_LOG_CATEGORY_MODE_INCLUDE</option>
+					<option value="0">PLG_DEBUG_FIELD_LOG_CATEGORY_MODE_EXCLUDE</option>
 				</field>
 			</fieldset>
 
