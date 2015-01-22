@@ -43,4 +43,3 @@ JFactory::getDocument()->addScriptDeclaration('
 <?php if ($showToolbar) : ?>
 	<?php echo JLayoutHelper::render('editors.codemirror.toolbar', $displayData, $layoutPath, array('debug' => JDEBUG)); ?>
 <?php endif; ?>
-
