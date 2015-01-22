@@ -256,8 +256,8 @@ class PlgEditorCodemirror extends JPlugin
 				'params'  => $this->params,
 				'name'    => $name,
 				'id'      => $id,
-				'cols'    => $cols,
-				'rows'    => $rows,
+				'cols'    => $col,
+				'rows'    => $row,
 				'content' => $content,
 				'buttons' => $buttons
 			);
